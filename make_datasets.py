@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 
 LABEL = 'returnQuantity'
 
-def preprocess(df):
+def preprocess(df, split):
 	# Months
 	df['mmdd'] = df.orderDate.str[-5:]
 	df['months'] = df.orderDate.str[-5:-3].astype(np.int8)
@@ -25,11 +25,12 @@ def preprocess(df):
 	del budget
 
 	# Return probability. 0.5 if unknown, assuming fairness
-	df_return_probability = df[['articleID', 'returnQuantity', 'quantity']].groupby('articleID').sum()
-	df_return_probability['return_probability'] = df_return_probability.returnQuantity / df_return_probability.quantity
+	df_return_probability = df[['articleID','returnQuantity','quantity']].groupby('articleID').sum()
+	df_return_probability['return_probability'] = df_return_probability.returnQuantity/df_return_probability.quantity
 	return_prob_dict = df_return_probability['return_probability'].to_dict()
 	del df_return_probability
-	df['return_prob'] = df.articleID.apply(lambda x: return_prob_dict.get(x, 0.5))
+	df['return_prob']= df.articleID.apply(return_prob_dict.get).replace(np.NaN, 0.5).replace(np.inf, 0.5)
+	del return_prob_dict
 
 	# Price after rebate = total_order - voucherAmount
 	df['after_voucher'] = df.total_order - df.voucherAmount
@@ -39,29 +40,28 @@ def preprocess(df):
 	df['choice_order'] = df[['orderID', 'articleID']].groupby(['orderID']).cumcount()
 
 	# Is it wednesday?
-	print("[SLOW] Is it wednesday?")
-	df['wednesday'] = df.orderDate.apply(pd.to_datetime).apply(lambda x: x.weekday())
-	df.wednesday[df.wednesday != 2] = 0
-	df.wednesday[df.wednesday == 2] = 1
+	print("[SLOW] Get weekday")
+	df['weekday'] = df.orderDate.apply(pd.to_datetime).apply(lambda x: x.weekday())
 
 	# Iseng ubah float ke integer. Integer aja, asik, enteng, wkwk
-	df.price = df.price.astype(np.int32)
-	df.budget = df.budget.astype(np.int32)
+	# print("Iseng ubah float ke integer")
+	# df.price = df.price.astype(np.int32)
+	# df.budget = df.budget.astype(np.int32)
 
 	# Konversi kategori/object ke numerik
 	print("Konversi kategori/object ke numerik:")
 
+	# orderID would never be repeated
+	df = df.drop('orderID', axis=1)
+
 	# Cari kolom yang tipenya object, bukan integer maupun float
 	object_columns = df.loc[:, df.dtypes == object].columns
 
-	# orderID would never be repeated
-	del df['orderID']
-
 	for col in object_columns:
 	    print(col)
-	    le=LabelEncoder()
+	    le = LabelEncoder()
 	    # Konversi deh
-	    df[col]=le.fit_transform(df[col])
+	    df[col] = le.fit_transform(df[col])
 
 	# Unused functions
 	# df['cSizeCode'] = df.sizeCode.apply(changeSizeCode)
@@ -80,7 +80,7 @@ def main():
     split = train_df.shape[0]
 
     df = pd.concat([train_df, tests_df], axis=0, ignore_index=True)
-    df = preprocess(df)
+    df = preprocess(df, split)
     # df = df.drop(['orderID'], axis=1)
 
     train_df = df[:split]
