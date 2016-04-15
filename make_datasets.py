@@ -39,20 +39,14 @@ def preprocess(df, split):
 	df['order_order']  = df[['customerID', 'orderID']].groupby(['customerID']).cumcount()
 	df['choice_order'] = df[['orderID', 'articleID']].groupby(['orderID']).cumcount()
 
-	# Is it wednesday?
+	# Is it Wednesday?
 	print("[SLOW] Get weekday")
 	df['weekday'] = df.orderDate.apply(pd.to_datetime).apply(lambda x: x.weekday())
+	df['wednesday'] = 0
+	df['wednesday'][df.weekday==2] = 1
 
-	# Iseng ubah float ke integer. Integer aja, asik, enteng, wkwk
-	# print("Iseng ubah float ke integer")
-	# df.price = df.price.astype(np.int32)
-	# df.budget = df.budget.astype(np.int32)
-
-	# Konversi kategori/object ke numerik
+	# Konversi data bertipe kategori/object ke numerik. Komen baris ini hingga blok for kalau tidak ingin konversi data bertipe kategori
 	print("Konversi kategori/object ke numerik:")
-
-	# orderID would never be repeated
-	df = df.drop('orderID', axis=1)
 
 	# Cari kolom yang tipenya object, bukan integer maupun float
 	object_columns = df.loc[:, df.dtypes == object].columns
@@ -62,6 +56,10 @@ def preprocess(df, split):
 	    le = LabelEncoder()
 	    # Konversi deh
 	    df[col] = le.fit_transform(df[col])
+
+	# Iseng ubah float ke integer.
+	# df.price = df.price.astype(np.int32)
+	# df.budget = df.budget.astype(np.int32)
 
 	# Unused functions
 	# df['cSizeCode'] = df.sizeCode.apply(changeSizeCode)
@@ -81,6 +79,8 @@ def main():
 
     df = pd.concat([train_df, tests_df], axis=0, ignore_index=True)
     df = preprocess(df, split)
+
+    # orderID nggak akan berulang, kalau mau drop aja gpp
     # df = df.drop(['orderID'], axis=1)
 
     train_df = df[:split]
