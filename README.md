@@ -2,5 +2,7 @@
 
 - `python make_train_dataset_only.py`
 - load di ipython notebook
-- split dengan rasio=0.20 (80% + 20%)
+- split dengan rasio=0.15 (85% + 15%)
 - klasifikasi deh
+- turunkan error masing-masing
+- kalau errornya masih jelek, jangan berkecil hati. siapa tau pas di-ensemble malah bikin bagus
