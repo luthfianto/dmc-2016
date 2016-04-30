@@ -1,38 +1,32 @@
-# Updated ocassionally
+﻿# Updated ocassionally
 
 from __future__ import division
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
+#from sklearn.preprocessing import LabelEncoder
 
 LABEL = 'returnQuantity'
 
 def preprocess(df):
 
-	# Deletions
 	print 'Minimal 12 menitan'
-	#print "WARNING: Script ini hapus: deviceID, voucherID"
-	#del df['deviceID']
-	#del df['voucherID']
 
 	# Months
 	df['mmdd'] = df.orderDate.str[-5:]
 	df['months'] = df.orderDate.str[-5:-3].astype(np.int8)
 
 	# Total price for an order
-	order = df[['orderID', 'price']].groupby('orderID').sum()
-	order.columns = ['total_order']
-	df = df.set_index('orderID').join(order).reset_index()
-	del order
+	order_total_dict = df[['orderID', 'price']].groupby('orderID').sum()['price'].to_dict()
+	df['order_total'] = df.orderID.apply(order_total_dict.get).astype(np.float32)
+	del order_total_dict
 
 	# Average budget of the customer
-	budget = df[['customerID', 'total_order']].groupby('customerID').mean()
-	budget.columns = ['budget']
-	df = df.set_index('customerID').join(budget).reset_index()
-	del budget
+	customer_budget_dict = df[['customerID', 'order_total']].groupby('customerID').mean()['order_total'].to_dict()
+	df['customer_budget'] = df.customerID.apply(customer_budget_dict.get).astype(np.float32)
+	del customer_budget_dict
 
-	# Price after rebate = total_order - voucherAmount
-	df['after_voucher'] = df.total_order - df.voucherAmount
+	# Price after rebate = order_total - voucherAmount
+	df['after_voucher'] = df.order_total - df.voucherAmount
 
 	# Orders (as in rank)
 	df['order_order']  = df[['customerID', 'orderID']].groupby(['customerID']).cumcount() + 1
@@ -47,6 +41,15 @@ def preprocess(df):
 		return_prob_dict = df_return_probability[ column + '_prob' ].to_dict()
 		del df_return_probability
 		df[ column + '_prob' ] = df[column].apply(return_prob_dict.get).replace(np.NaN, 0.5).replace(np.inf, 0.5)
+		del return_prob_dict
+
+	def append_return_cumprob(df, column):
+		df2 = df[[column,'returnQuantity','quantity']]
+		df_return_probability = df2.groupby(column).sum()
+		df_return_probability[ column + '_prob' ]  = df_return_probability.returnQuantity / df_return_probability.quantity
+		return_prob_dict = df_return_probability[ column + '_prob' ].to_dict()
+		del df_return_probability
+		df[ column + '_cumprob' ] = df[column].apply(return_prob_dict.get).replace(np.NaN, 0.5).replace(np.inf, 0.5)
 		del return_prob_dict
 
 	append_return_prob(df, 'articleID')
