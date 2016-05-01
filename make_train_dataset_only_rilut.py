@@ -36,6 +36,20 @@ def preprocess(df):
 	df['expense_ratio'] = (df['customer_budget'] / df['total_spent']).astype(np.float16)
 	del df['total_spent']
 
+	# Mau ga mau mesti impute rrp dulu biar ga NaN :(
+	df.rrp.fillna(df.rrp.median(), inplace=True)
+
+	# Metode farah
+	temp_quantity = df.quantity.copy()
+	temp_quantity[temp_quantity==0] = 1
+	df['unit_price'] = (df.price/temp_quantity).astype(np.float32)
+
+	usual_unit_price_dict = df[['articleID', 'unit_price']].groupby('articleID').median().unit_price.to_dict()
+	df['usual_unit_price']=df.articleID.apply(usual_unit_price_dict.get).astype(np.float32)
+	del usual_unit_price_dict
+
+	df['price_diff'] = (df['unit_price']-df.usual_unit_price).astype(np.float32)
+
 	# Price after rebate = order_total - voucherAmount
 	df['after_voucher'] = df.order_total - df.voucherAmount
 
