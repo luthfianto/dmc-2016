@@ -29,6 +29,13 @@ def preprocess(df):
 	df['customer_budget'] = df.customerID.apply(customer_budget_dict.get).astype(np.float32)
 	del customer_budget_dict
 
+	# Customer expense ratio	
+	total_spent_dict = df[['customerID', 'order_total']].groupby('customerID').sum()['order_total'].to_dict()
+	df['total_spent'] = df.customerID.apply(total_spent_dict.get).astype(np.float32)
+	del total_spent_dict
+	df['expense_ratio'] = (df['customer_budget'] / df['total_spent']).astype(np.float16)
+	del df['total_spent']
+
 	# Price after rebate = order_total - voucherAmount
 	df['after_voucher'] = df.order_total - df.voucherAmount
 
@@ -49,7 +56,7 @@ def preprocess(df):
 
 	def append_return_cumprob(df, column):
 		df2 = df[[column,'returnQuantity','quantity']]
-		df_return_probability = df2.groupby(column).sum()
+		df_return_probability = df2.groupby(column).cumsum()
 		df_return_probability[ column + '_prob' ]  = df_return_probability.returnQuantity / df_return_probability.quantity
 		return_prob_dict = df_return_probability[ column + '_prob' ].to_dict()
 		del df_return_probability
