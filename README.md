@@ -7,3 +7,11 @@
 - prediksi deh. terserah mau pakai model regressor apa
 - turunkan error masing-masing
 - kalau errornya masih jelek, jangan berkecil hati. siapa tau pas di-ensemble malah bikin bagus, karena ensemble yang baik justru yang hasil/metodenya berbeda
+
+### Yang harus dikirim menjelang hari akhir
+
+- prediksi 15% data training  tanpa dibulatkan ke integer, dari model yang dilatih dengan 85% data training
+- pastikan 15% data tersebut tidak mengalami dropna. (data 85%-nya terserah deh asal yakin) 
+- prediksi data testing, dari model yang dilatih dengan 100% data training
+- pastikan data testing tidak mengalami dropna
+- pemilihan fitur bebas. hindari *leaking*. kalau misal hasilnya terlalu bagus, kabarkan ke teman-teman dan sambil di-cek lagi mengapa 
