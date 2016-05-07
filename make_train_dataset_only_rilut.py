@@ -36,13 +36,11 @@ def preprocess(df):
 	df['expense_ratio'] = (df['customer_budget'] / df['total_spent']).astype(np.float16)
 	del df['total_spent']
 
-	# Mau ga mau mesti impute rrp dulu biar ga NaN :(
-	df.rrp.fillna(df.rrp.median(), inplace=True)
-
 	# Metode farah
 	temp_quantity = df.quantity.copy()
 	temp_quantity[temp_quantity==0] = 1
 	df['unit_price'] = (df.price/temp_quantity).astype(np.float32)
+	del temp_quantity
 
 	usual_unit_price_dict = df[['articleID', 'unit_price']].groupby('articleID').median().unit_price.to_dict()
 	df['usual_unit_price']=df.articleID.apply(usual_unit_price_dict.get).astype(np.float32)
@@ -79,8 +77,11 @@ def preprocess(df):
 
 	append_return_prob(df, 'articleID')
 	append_return_prob(df, 'colorCode')
-	append_return_prob(df, 'customerID')
 	append_return_prob(df, 'sizeCode')
+
+	append_return_prob(df, 'customerID')
+	df.customerID_prob[df.customerID_prob>1]=1
+
 	
 	float_64_columns = df.loc[:, df.dtypes == np.float64].columns
 	for col in float_64_columns:
@@ -91,7 +92,6 @@ def preprocess(df):
 		df[col] = df[col].astype(np.int32)
 
 	# Article & Color
-	column='ac'
 	columns=['articleID','colorCode']
 	df2 = df[['articleID','colorCode','returnQuantity','quantity']]
 	df_return_probability = df2.groupby(columns).sum()
@@ -106,6 +106,14 @@ def preprocess(df):
 	df_return_probability[ 'as' + '_prob' ]  = df_return_probability.returnQuantity / df_return_probability.quantity
 	as_prob_dict=df_return_probability.as_prob.to_dict()
 	df['as_prob']=df[['articleID','colorCode']].apply(tuple, axis=1).apply(ac_prob_dict.get).replace(np.nan, 0.5).replace(np.inf, 0.5)
+
+	def lowerOrHigher(row):
+		if row['unit_price']<row['usual_unit_price']:
+			return -1
+		elif row['unit_price']>row['usual_unit_price']:
+			return 1
+		else:
+			return 0
 
 	#df.productGroup = df.productGroup.astype(np.int8)	
 
