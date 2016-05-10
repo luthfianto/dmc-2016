@@ -68,19 +68,16 @@ def preprocess(df):
 
 	def append_return_cumprob(df, column):
 		df2 = df[[column,'returnQuantity','quantity']]
-		df_return_probability = df2.groupby(column).cumsum()
+		df_return_probability = df2.groupby(column)['returnQuantity','quantity'].cumsum()
 		df_return_probability[ column + '_prob' ]  = df_return_probability.returnQuantity / df_return_probability.quantity
-		return_prob_dict = df_return_probability[ column + '_prob' ].to_dict()
-		del df_return_probability
-		df[ column + '_cumprob' ] = df[column].apply(return_prob_dict.get).replace(np.NaN, 0.5).replace(np.inf, 0.5)
-		del return_prob_dict
+		df[ column + '_cumprob' ] = df_return_probability[ column + '_prob' ].replace(np.NaN, 0.5).replace(np.inf, 0.5).apply(lambda x: 1 if x > 1 else x)
 
-	append_return_prob(df, 'articleID')
-	append_return_prob(df, 'colorCode')
-	append_return_prob(df, 'sizeCode')
-
-	append_return_prob(df, 'customerID')
-	df.customerID_prob[df.customerID_prob>1]=1
+	append_return_cumprob(df, 'articleID')
+	append_return_cumprob(df, 'colorCode')
+	append_return_cumprob(df, 'customerID')
+	append_return_cumprob(df, 'sizeCode')
+	df.customerID_cumprob[df.customerID_cumprob>1]=1
+	
 
 	
 	float_64_columns = df.loc[:, df.dtypes == np.float64].columns
