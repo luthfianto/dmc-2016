@@ -19,7 +19,14 @@
   - PolynomialFeatures atau *feature selection* yang berbeda sangat [berpengaruh](https://github.com/rilut/dmc-2016/blob/master/notebook%2FCoba%20PolynomialFeatures.ipynb) kalau mau pake Lasso
     - dengan itu, error dari 136040 jadi 96384
 
+### Split
 
+- untuk memisah data menjadi 85% dan 15% untuk prediksi akhir tolong dipisah dengan cara split manual saja, karena kalau memakai train_test_split akan dirandom dan data seharusnya __tidak__ dirandom.  
+- Berikut format memisah data yang benar:
+  X_train = X[:-341099]
+  y_train = y[:-341099]
+  X_test = X[-341099:]
+  y_test = y[-341099:]
 
 ### Yang harus dikirim menjelang hari akhir
 
