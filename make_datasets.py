@@ -1,4 +1,4 @@
-# Not 100% finished yet
+﻿# Not 100% finished yet
 
 from __future__ import division
 import pandas as pd
@@ -67,23 +67,7 @@ def extract_non_probabilities_features(df):
 		df[col] = df[col].astype(np.int32)
 
 	return df
-
-def append_return_prob_from_two_column(input_columns, input_df, target_df):
-	column_prefix = input_columns[0][0] + input_columns[1][0]
-	target_column_name = column_prefix + '_prob' 
-
-	print "\t\t append_return_prob_from_two_column:", input_columns, ' -> ',target_column_name
-
-	df_temp = input_df[ input_columns + ['returnQuantity','quantity'] ]
-
-	df_return_probability = df_temp.groupby(input_columns).sum()
-	df_return_probability[ target_column_name ]  = df_return_probability.returnQuantity / df_return_probability.quantity
-	
-	prob_dict  = df_return_probability[target_column_name].to_dict()
-	target_df[target_column_name] = target_df[input_columns].apply(tuple, axis=1).apply(prob_dict.get).replace(np.nan, 0.5).replace(np.inf, 0.5)
-
-	del df_return_probability
-
+        
 def extract_cumprob(df):
 
 	def append_return_cumprob(df, input_column):
@@ -96,14 +80,30 @@ def extract_cumprob(df):
 		df[ target_column_name ] = df_return_probability[ target_column_name ].replace(np.NaN, 0.5).replace(np.inf, 0.5).apply(lambda x: 1 if x > 1 else x)
 		
 		del df_return_probability
+        
+	def append_return_cumprob_from_multiple_column(df, input_columns):
+		column_prefix = ''
+		for i in range(0,len(input_columns)):
+			column_prefix = column_prefix + input_columns[i][0]
+		target_column_name = column_prefix + '_prob' 
+
+		df_temp = df[ input_columns + ['returnQuantity','quantity'] ]
+
+		df_return_probability = df_temp.groupby(input_columns).cumsum()
+		df_return_probability[ target_column_name ]  = df_return_probability.returnQuantity / df_return_probability.quantity
+
+		df[ target_column_name ] = df_return_probability[ target_column_name ].replace(np.NaN, 0.5).replace(np.inf, 0.5).apply(lambda x: 1 if x > 1 else x)
+
+		del df_return_probability
 
 	append_return_cumprob(df, 'articleID')
 	append_return_cumprob(df, 'colorCode')
 	append_return_cumprob(df, 'customerID')
 	append_return_cumprob(df, 'sizeCode')
 
-	append_return_prob_from_two_column(['articleID', 'colorCode'], input_df=df, target_df=df)
-	append_return_prob_from_two_column(['articleID', 'sizeCode'] , input_df=df, target_df=df)
+	append_return_cumprob_from_multiple_column(df, ['articleID', 'colorCode'])
+	append_return_cumprob_from_multiple_column(df, ['articleID', 'sizeCode'])
+	append_return_cumprob_from_multiple_column(df, ['customerID', 'productGroup', 'sizeCode'])
 
 	return df
 
@@ -117,14 +117,33 @@ def append_cumprob_to_tests_df(train_df, tests_df):
 		del df_return_probability
 		tests_df[ column + '_prob' ] = tests_df[column].apply(return_prob_dict.get).replace(np.NaN, 0.5).replace(np.inf, 0.5).apply(lambda x: 1 if x > 1 else x)
 		del return_prob_dict
+        
+	def append_return_prob_from_multiple_column(input_columns, input_df, target_df):
+		column_prefix = ''
+		for i in range(0,len(input_columns)):
+			column_prefix = column_prefix + input_columns[i][0]
+		target_column_name = column_prefix + '_prob' 
+
+		print "\t\t append_return_prob_from_two_column:", input_columns, ' -> ',target_column_name
+
+		df_temp = input_df[ input_columns + ['returnQuantity','quantity'] ]
+
+		df_return_probability = df_temp.groupby(input_columns).sum()
+		df_return_probability[ target_column_name ]  = df_return_probability.returnQuantity / df_return_probability.quantity
+
+		prob_dict  = df_return_probability[target_column_name].to_dict()
+		target_df[target_column_name] = target_df[input_columns].apply(tuple, axis=1).apply(prob_dict.get).replace(np.nan, 0.5).replace(np.inf, 0.5)
+
+		del df_return_probability
 
 	append_return_prob('articleID', train_df, tests_df)
 	append_return_prob('colorCode', train_df, tests_df)
 	append_return_prob('customerID', train_df, tests_df)
 	append_return_prob('sizeCode', train_df, tests_df)
 
-	append_return_prob_from_two_column(['articleID', 'colorCode'], input_df=train_df, target_df=tests_df)
-	append_return_prob_from_two_column(['articleID', 'sizeCode'] , input_df=train_df, target_df=tests_df)
+	append_return_prob_from_multiple_column(['articleID', 'colorCode'], input_df=train_df, target_df=tests_df)
+	append_return_prob_from_multiple_column(['articleID', 'sizeCode'] , input_df=train_df, target_df=tests_df)
+	append_return_prob_from_multiple_column(['customerID', 'productGroup', 'sizeCode'] , input_df=train_df, target_df=tests_df)
 
 	return tests_df
 
