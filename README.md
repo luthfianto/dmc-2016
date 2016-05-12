@@ -23,10 +23,10 @@
 
 - untuk memisah data menjadi 85% dan 15% untuk prediksi akhir tolong dipisah dengan cara split manual saja, karena kalau memakai train_test_split akan dirandom dan data seharusnya __tidak__ dirandom.  
 - Berikut format memisah data yang benar:
-  X_train = X[:-341099]
-  y_train = y[:-341099]
-  X_test = X[-341099:]
-  y_test = y[-341099:]
+  X_train = X[:-341099]  
+  y_train = y[:-341099]  
+  X_test = X[-341099:]  
+  y_test = y[-341099:]  
 
 ### Yang harus dikirim menjelang hari akhir
 
