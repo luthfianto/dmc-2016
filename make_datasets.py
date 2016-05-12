@@ -1,4 +1,4 @@
-﻿# Not 100% finished yet
+# Not 100% finished yet
 
 from __future__ import division
 import pandas as pd
@@ -85,7 +85,9 @@ def extract_cumprob(df):
 		column_prefix = ''
 		for i in range(0,len(input_columns)):
 			column_prefix = column_prefix + input_columns[i][0]
-		target_column_name = column_prefix + '_prob' 
+		target_column_name = column_prefix + '_cumprob'
+
+		print "\t\t append_return_prob_from_two_column:", input_columns, ' -> ',target_column_name
 
 		df_temp = df[ input_columns + ['returnQuantity','quantity'] ]
 
@@ -112,17 +114,17 @@ def append_cumprob_to_tests_df(train_df, tests_df):
 	def append_return_prob(column, train_df, tests_df):
 		df2 = train_df[[column,'returnQuantity','quantity']]
 		df_return_probability = df2.groupby(column).sum()
-		df_return_probability[ column + '_prob' ]  = df_return_probability.returnQuantity / df_return_probability.quantity
-		return_prob_dict = df_return_probability[ column + '_prob' ].to_dict()
+		df_return_probability[ column + '_cumprob' ]  = df_return_probability.returnQuantity / df_return_probability.quantity
+		return_prob_dict = df_return_probability[ column + '_cumprob' ].to_dict()
 		del df_return_probability
-		tests_df[ column + '_prob' ] = tests_df[column].apply(return_prob_dict.get).replace(np.NaN, 0.5).replace(np.inf, 0.5).apply(lambda x: 1 if x > 1 else x)
+		tests_df[ column + '_cumprob' ] = tests_df[column].apply(return_prob_dict.get).replace(np.NaN, 0.5).replace(np.inf, 0.5).apply(lambda x: 1 if x > 1 else x)
 		del return_prob_dict
         
 	def append_return_prob_from_multiple_column(input_columns, input_df, target_df):
 		column_prefix = ''
 		for i in range(0,len(input_columns)):
 			column_prefix = column_prefix + input_columns[i][0]
-		target_column_name = column_prefix + '_prob' 
+		target_column_name = column_prefix + '_cumprob' 
 
 		print "\t\t append_return_prob_from_two_column:", input_columns, ' -> ',target_column_name
 
@@ -148,6 +150,7 @@ def append_cumprob_to_tests_df(train_df, tests_df):
 	return tests_df
 
 def main():
+	pd.options.mode.chained_assignment = None
 	from datetime import datetime
 	time = lambda: datetime.now().time()
 
