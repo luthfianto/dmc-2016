@@ -1,1 +1,1 @@
-- **ThielSenRegressor** berat banget bikin hang
+- **TheilSenRegressor** berat banget bikin hang
