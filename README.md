@@ -1,11 +1,11 @@
-### Members
+### Team members
 
-- [https://github.com/amirahff](Amirah Farah F)
-- [https://github.com/meisyarahd](Meisyarah D)
-- [https://github.com/rilut](Rizky Luthfianto)
-- [https://github.com/rochanaph](Rochana Prih H)
+- [Amirah Farah Fawziyyah](https://github.com/amirahff)
+- [Meisyarah Dwiastuti](https://github.com/meisyarahd)
+- [Rizky Luthfianto](https://github.com/rilut)
+- [Rochana Prih Hastuti](https://github.com/rochanaph)
 
-### Notes for team submissions
+### Notes on team submissions
 
 - prediksi 15% data training  tanpa dibulatkan ke integer, dari model yang dilatih dengan 85% data training
 - pastikan 15% data tersebut tidak mengalami dropna. (data 85%-nya terserah deh kalau mau di-dropna asal yakin) 
